@@ -2,10 +2,10 @@
 
 use std::borrow::Borrow;
 use std::convert::AsRef;
+use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{
-    Add, BitAnd, BitOr, BitXor, Bound, Deref, Div, Index, Mul, Neg, Not, RangeBounds, Rem, Shl,
-    Shr, Sub,
+    Add, BitAnd, BitOr, BitXor, Bound, Div, Index, Mul, Neg, Not, RangeBounds, Rem, Shl, Shr, Sub,
 };
 
 /// A `Predicate` tests if a value satisfies a particular refinement type.
@@ -53,7 +53,7 @@ pub trait Predicate<T> {
 /// let y = LessThanTen::new(11);
 /// assert!(y.is_none());
 /// ```
-#[derive(Clone, Copy, PartialEq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Refinement<T, P>(T, PhantomData<P>);
 
 impl<T, P> Refinement<T, P>
@@ -238,18 +238,6 @@ where
     }
 }
 
-impl<T, P> Deref for Refinement<T, P>
-where
-    T: Deref,
-    P: Predicate<T>,
-{
-    type Target = T::Target;
-
-    fn deref(&self) -> &Self::Target {
-        self.0.deref()
-    }
-}
-
 impl<T, P> Div<T> for Refinement<T, P>
 where
     T: Div<Output = T>,
@@ -426,5 +414,15 @@ where
     type Output = Option<Self>;
     fn sub(self, rhs: Self) -> Self::Output {
         Self::new(self.0 - rhs.0)
+    }
+}
+
+impl<T, P> fmt::Display for Refinement<T, P>
+where
+    T: fmt::Display,
+    P: Predicate<T>,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
     }
 }

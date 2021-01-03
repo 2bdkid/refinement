@@ -1,4 +1,51 @@
 //! Convenient creation of type-safe refinement types.
+//!
+//! This crate tries to capture the idea of a refinement type, which
+//! is a type endowed with a predicate which is assumed to hold for
+//! any element of the refined type.[^1]
+//!
+//! Refinement types are useful when only certain values of a type are expected at runtime.
+//! As an example, suppose there's a function that only logically works on even integers.
+//!
+//! ```should_panic
+//! fn takes_even(i: i32) {
+//!     if i % 2 == 0 {
+//!         println!("Received even number {}", i);
+//!     } else {
+//!         panic!("Received odd number");
+//!     }
+//! }
+//!
+//! takes_even(1);  // oops
+//! ```
+//!
+//! Using a refinement type, this function may be defined in a way where it is impossible to supply
+//! an odd number.
+//!
+//! ```
+//! use refinement::{Refinement, Predicate};
+//!
+//! struct EvenPredicate;
+//!
+//! impl Predicate<i32> for EvenPredicate {
+//!     fn test(x: &i32) -> bool {
+//!         *x % 2 == 0
+//!     }
+//! }
+//!
+//! type Even = Refinement<i32, EvenPredicate>;
+//!
+//! fn takes_even(i: Even) {
+//!     println!("Received even number {}", i);
+//! }
+//!
+//! match Even::new(4) {
+//!     Some(x) => takes_even(x),  // "Received even number 4"
+//!     None => { /* ... */ }      // Handle logical error
+//! }
+//!
+//! ```
+//! [^1]: https://en.wikipedia.org/wiki/Refinement_type
 
 use std::borrow::Borrow;
 use std::convert::AsRef;
@@ -10,7 +57,10 @@ use std::ops::{
 
 /// A `Predicate` tests if a value satisfies a particular refinement type.
 ///
+/// Used in conjunction with [`Refinement`](self::Refinement).
+///
 /// # Example
+///
 /// ```
 /// use refinement::Predicate;
 ///
@@ -24,6 +74,9 @@ use std::ops::{
 ///
 /// ```
 pub trait Predicate<T> {
+    /// Test if a value satisfies the `Predicate`.
+    ///
+    /// See [`Refinement`](self::Refinement) for usage examples.
     fn test(x: &T) -> bool;
 }
 

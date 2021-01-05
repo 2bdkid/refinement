@@ -25,21 +25,21 @@
 //! ```
 //! use refinement::{Refinement, Predicate};
 //!
-//! struct EvenPredicate;
+//! struct Even;
 //!
-//! impl Predicate<i32> for EvenPredicate {
+//! impl Predicate<i32> for Even {
 //!     fn test(x: &i32) -> bool {
 //!         *x % 2 == 0
 //!     }
 //! }
 //!
-//! type Even = Refinement<i32, EvenPredicate>;
+//! type EvenInt = Refinement<i32, Even>;
 //!
-//! fn takes_even(i: Even) {
+//! fn takes_even(i: EvenInt) {
 //!     println!("Received even number {}", i);
 //! }
 //!
-//! match Even::new(4) {
+//! match EvenInt::new(4) {
 //!     Some(x) => takes_even(x),  // "Received even number 4"
 //!     None => { /* ... */ }      // Handle logical error
 //! }
@@ -64,9 +64,9 @@ use std::ops::{
 /// ```
 /// use refinement::Predicate;
 ///
-/// struct LessThanTenPredicate;
+/// struct LessThanTen;
 ///
-/// impl Predicate<i32> for LessThanTenPredicate {
+/// impl Predicate<i32> for LessThanTen {
 ///     fn test(x: &i32) -> bool {
 ///         *x < 10
 ///     }
@@ -76,34 +76,36 @@ use std::ops::{
 pub trait Predicate<T> {
     /// Test if a value satisfies the `Predicate`.
     ///
-    /// See [`Refinement`](self::Refinement) for usage examples.
+    /// See [`Refinement`](Refinement) for usage examples.
     fn test(x: &T) -> bool;
 }
 
-/// A `Refinement` type ensures all values of a particular type satisfy a `Predicate`.
+/// A `Refinement` type ensures all values of a particular type satisfy a [`Predicate`].
 ///
-/// Use [`to_inner`](Refinement::to_inner) to access the underlying value or [`into_inner`](Refinement::into_inner) to unwrap the value.
-/// `Refinement` also implements many common standard library traits if the underlying value also
-/// implements them.
+/// Use [`as_inner`](Refinement::as_inner)/[`to_inner`](Refinement::to_inner) to access the 
+/// underlying value or [`into_inner`](Refinement::into_inner) to unwrap the value.
+///
+/// `Refinement` also implements many common standard library traits if the underlying 
+/// value also implements them.
 ///
 /// # Examples
 /// ```
 /// use refinement::{Predicate, Refinement};
 ///
-/// struct LessThanTenPredicate;
+/// struct LessThanTen;
 ///
-/// impl Predicate<i32> for LessThanTenPredicate {
+/// impl Predicate<i32> for LessThanTen {
 ///     fn test(x: &i32) -> bool {
 ///         *x < 10
 ///     }
 /// }
 ///
-/// type LessThanTen = Refinement<i32, LessThanTenPredicate>;
+/// type LessThanTenInt = Refinement<i32, LessThanTen>;
 ///
-/// let x = LessThanTen::new(5);
-/// assert_eq!(Some(5), x.map(|x| x.to_inner()));
+/// let x = LessThanTenInt::new(5);
+/// assert!(x.is_some());
 ///
-/// let y = LessThanTen::new(11);
+/// let y = LessThanTenInt::new(11);
 /// assert!(y.is_none());
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -122,15 +124,15 @@ where
     /// ```
     /// use refinement::{Predicate, Refinement};
     ///
-    /// struct NonEmptyStringPredicate;
+    /// struct NonEmpty;
     ///
-    /// impl Predicate<String> for NonEmptyStringPredicate {
+    /// impl Predicate<String> for NonEmpty {
     ///     fn test(x: &String) -> bool {
     ///        !x.is_empty()
     ///     }
     /// }
     ///
-    /// type NonEmptyString = Refinement<String, NonEmptyStringPredicate>;
+    /// type NonEmptyString = Refinement<String, NonEmpty>;
     ///
     /// let s1 = NonEmptyString::new(String::from("Hello"));
     /// assert!(s1.is_some());
@@ -146,26 +148,26 @@ where
         }
     }
 
-    /// Unwrap the underlying value
+    /// Unwrap the underlying value, consuming `self`.
     ///
     /// # Examples
     ///
     /// ```
     /// use refinement::{Predicate, Refinement};
     ///
-    /// struct ThreeDigitStringPredicate;
+    /// struct ThreeDigit;
     ///
-    /// impl Predicate<String> for ThreeDigitStringPredicate {
+    /// impl Predicate<String> for ThreeDigit {
     ///     fn test(x: &String) -> bool {
     ///        x.chars().count() == 3 && x.chars().filter(|c| c.is_ascii_digit()).count() == 3
     ///     }
     /// }
     ///
-    /// type ThreeDigitString = Refinement<String, ThreeDigitStringPredicate>;
+    /// type ThreeDigitString = Refinement<String, ThreeDigit>;
     ///
-    /// let s = ThreeDigitString::new(String::from("123")).unwrap();
+    /// let s = ThreeDigitString::new(String::from("123"));
     ///
-    /// assert_eq!(String::from("123"), s.into_inner());
+    /// assert_eq!(String::from("123"), s.unwrap().into_inner());
     /// ```
     pub fn into_inner(self) -> T {
         self.0
@@ -179,9 +181,57 @@ where
 {
     /// Retrieve the underlying value without consuming `self`.
     ///
-    /// See [`into_inner`](Refinement::into_inner) for a similar usage pattern.
+    /// # Examples
+    ///
+    /// ```
+    /// use refinement::{Predicate, Refinement};
+    ///
+    /// struct ThreeDigit;
+    ///
+    /// impl Predicate<String> for ThreeDigit {
+    ///     fn test(x: &String) -> bool {
+    ///        x.chars().count() == 3 && x.chars().filter(|c| c.is_ascii_digit()).count() == 3
+    ///     }
+    /// }
+    ///
+    /// type ThreeDigitString = Refinement<String, ThreeDigit>;
+    ///
+    /// let s = ThreeDigitString::new(String::from("123"));
+    ///
+    /// assert_eq!(String::from("123"), s.unwrap().to_inner());
+    /// ```
     pub fn to_inner(&self) -> T {
         self.0.clone()
+    }
+}
+
+impl<T, P> Refinement<T, P>
+where
+    T: Copy,
+    P: Predicate<T>
+{
+    /// Retrieve the underlying value for [`Copy`] types without consuming `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use refinement::{Predicate, Refinement};
+    ///
+    /// struct LessThanTen;
+    ///
+    /// impl Predicate<i32> for LessThanTen {
+    ///     fn test(x: &i32) -> bool {
+    ///         *x < 10
+    ///     }
+    /// }
+    ///
+    /// type LessThanTenInt = Refinement<i32, LessThanTen>;
+    ///
+    /// let x = LessThanTenInt::new(5);
+    /// assert_eq!(5, x.unwrap().as_inner());
+    /// ```
+    pub fn as_inner(&self) -> T {
+        self.0
     }
 }
 

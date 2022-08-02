@@ -82,10 +82,10 @@ pub trait Predicate<T> {
 
 /// A `Refinement` type ensures all values of a particular type satisfy a [`Predicate`].
 ///
-/// Use [`as_inner`](Refinement::as_inner)/[`to_inner`](Refinement::to_inner) to access the 
+/// Use [`as_inner`](Refinement::as_inner)/[`to_inner`](Refinement::to_inner) to access the
 /// underlying value or [`into_inner`](Refinement::into_inner) to unwrap the value.
 ///
-/// `Refinement` also implements many common standard library traits if the underlying 
+/// `Refinement` also implements many common standard library traits if the underlying
 /// value also implements them.
 ///
 /// # Examples
@@ -216,7 +216,7 @@ where
 impl<T, P> Refinement<T, P>
 where
     T: Copy,
-    P: Predicate<T>
+    P: Predicate<T>,
 {
     /// Retrieve the underlying value for [`Copy`] types without consuming `self`.
     ///

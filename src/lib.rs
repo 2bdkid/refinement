@@ -182,6 +182,12 @@ impl<T, P> std::ops::Deref for Refinement<T, P> {
     }
 }
 
+impl<T, P> std::ops::DerefMut for Refinement<T, P> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl<T, P> Refinement<T, P>
 where
     T: Clone,

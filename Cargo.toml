@@ -1,6 +1,6 @@
 [package]
 name = "refinement"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Brady Dean <2bdkid@gmail.com>", "Joey Ezechiels <joey.ezechiels@gmail.com>"]
 edition = "2018"
 readme = "README.md"

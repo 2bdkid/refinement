@@ -174,6 +174,14 @@ where
     }
 }
 
+impl<T, P> std::ops::Deref for Refinement<T, P> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl<T, P> Refinement<T, P>
 where
     T: Clone,

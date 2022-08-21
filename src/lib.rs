@@ -183,7 +183,6 @@ where
             .field(&self.0) // : T
             .field(&format_args!("_")) // : PhantomData<P>
             .finish()
-        Ok(())
     }
 }
 

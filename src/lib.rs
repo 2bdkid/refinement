@@ -108,7 +108,7 @@ pub trait Predicate<T> {
 /// let y = LessThanTenInt::new(11);
 /// assert!(y.is_none());
 /// ```
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Refinement<T, P>(T, PhantomData<P>);
 
 impl<T, P> Refinement<T, P>
@@ -173,6 +173,14 @@ where
         self.0
     }
 }
+
+impl<T: Clone, P> Clone for Refinement<T, P> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone(), self.1.clone())
+    }
+}
+
+impl<T: Copy, P> Copy for Refinement<T, P> {}
 
 impl<T, P> std::ops::Deref for Refinement<T, P> {
     type Target = T;

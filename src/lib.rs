@@ -108,7 +108,7 @@ pub trait Predicate<T> {
 /// let y = LessThanTenInt::new(11);
 /// assert!(y.is_none());
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Refinement<T, P>(T, PhantomData<P>);
 
 impl<T, P> Refinement<T, P>
@@ -171,6 +171,19 @@ where
     /// ```
     pub fn into_inner(self) -> T {
         self.0
+    }
+}
+
+impl<T, P> std::fmt::Debug for Refinement<T, P>
+where
+    T: std::fmt::Debug
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Refinement")
+            .field(&self.0) // : T
+            .field(&format_args!("_")) // : PhantomData<P>
+            .finish()
+        Ok(())
     }
 }
 

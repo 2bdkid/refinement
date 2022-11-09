@@ -119,6 +119,10 @@ where
     ///
     /// Returns `x` under the refinement type if `x` satisfies `P`, otherwise returns [`None`](std::option::Option::None).
     ///
+    /// See [`try_new`](Refinement::try_new) if keeping the original
+    /// `x` if it does not satisfy `P` would be more useful than
+    /// discarding it (for example, if `x` is expensive to construct).
+    ///
     /// # Examples
     ///
     /// ```
@@ -145,6 +149,40 @@ where
             Some(Refinement(x, PhantomData))
         } else {
             None
+        }
+    }
+
+    /// Creates a refined value from the underlying type `T` or
+    /// returns the input unchanged.
+    ///
+    /// Return `Ok(x)`, with `x` under the refinement type, if `x`
+    /// satisfies `P`, and otherwise return `Err(x)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use refinement::{Predicate, Refinement};
+    /// struct NonEmpty;
+    ///
+    /// impl Predicate<String> for NonEmpty {
+    ///     fn test(x: &String) -> bool {
+    ///        !x.is_empty()
+    ///     }
+    /// }
+    ///
+    /// type NonEmptyString = Refinement<String, NonEmpty>;
+    ///
+    /// let s1 = NonEmptyString::try_new(String::from("Hello"));
+    /// assert_eq!(s1, Ok(String::from("Hello")));
+    ///
+    /// let s2 = NonEmptyString::try_new(String::from(""));
+    /// assert_eq!(s2, Err(String::from("")));
+    /// ```
+    pub fn try_new(x: T) -> Result<Self, T> {
+        if P::test(&x) {
+            Ok(Refinement(x, PhantomData))
+        } else {
+            Err(x)
         }
     }
 

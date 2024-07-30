@@ -172,6 +172,38 @@ where
     pub fn into_inner(self) -> T {
         self.0
     }
+
+    /// Apply a function `f` to the current underlying value
+    /// (consuming `self`). Then, creates a refined value
+    /// from the result of `f`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use refinement::{Predicate, Refinement};
+    ///
+    /// struct IsVolumeLevel;
+    ///
+    /// impl Predicate<u32> for IsVolumeLevel {
+    ///     fn test(x: &u32) -> bool {
+    ///         (0u32..64u32).contains(x)
+    ///     }
+    /// }
+    ///
+    /// type VolumeLevel = Refinement<u32, IsVolumeLevel>;
+    ///
+    /// let ok = VolumeLevel::new(5u32).unwrap().apply(|v| v + 10u32);
+    /// assert_eq!(15u32, ok.unwrap().into_inner());
+    ///
+    /// let err = VolumeLevel::new(60u32).unwrap().apply(|v| v + 10u32);
+    /// assert!(err.is_none());
+    /// ```
+    pub fn apply<F>(self, f: F) -> Option<Self>
+    where
+        F: FnOnce(T) -> T,
+    {
+        Self::new(f(self.into_inner()))
+    }
 }
 
 impl<T, P> std::fmt::Debug for Refinement<T, P>
